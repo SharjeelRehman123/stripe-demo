@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biology Tutor v7</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f9f9f7; font-family: Georgia, serif; font-size: 14px; color: #1a1a1a; }
+.container { max-width: 760px; margin: 0 auto; padding: 20px; }
+h1 { font-size: 18px; font-weight: bold; border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 16px; }
+h2 { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; color: #666; }
+section { margin-bottom: 16px; padding: 14px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+label { display: block; font-size: 12px; margin-bottom: 3px; color: #555; }
+input[type="password"],input[type="text"],input[type="number"],textarea,select {
+  width:100%; padding:6px 9px; border:1px solid #ddd; border-radius:4px;
+  font-family:Georgia,serif; font-size:13px; background:#fafafa;
+}
+textarea { resize:vertical; min-height:70px; }
+button {
+  padding:6px 13px; border:1px solid #1a1a1a; border-radius:4px;
+  background:#1a1a1a; color:#fff; font-family:Georgia,serif; font-size:13px;
+  cursor:pointer; white-space:nowrap;
+}
+button:hover { background:#333; }
+button:disabled { background:#aaa; border-color:#aaa; cursor:not-allowed; }
+button.sec { background:#fff; color:#1a1a1a; }
+button.sec:hover { background:#f0f0f0; }
+button.danger { background:#c00; border-color:#c00; color:#fff; }
+button.danger:hover { background:#a00; }
+.row { display:flex; gap:8px; align-items:flex-end; }
+.row > * { flex:1; }
+.row > button,.row > .btn-fix { flex:0 0 auto; align-self:flex-end; }
+hr { border:none; border-top:1px solid #eee; margin:10px 0; }
+
+/* Checklist */
+#checklist { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+.ck-item { display:flex; align-items:center; gap:5px; font-size:12px; padding:3px 8px; border-radius:12px; border:1px solid #ddd; background:#f5f5f5; color:#888; }
+.ck-item.done { background:#e8f5e9; border-color:#a5d6a7; color:#2e7d32; }
+.ck-dot { width:7px; height:7px; border-radius:50%; background:#ccc; }
+.ck-item.done .ck-dot { background:#4caf50; }
+
+/* API blocks */
+.api-block { border:1px solid #eee; border-radius:4px; padding:10px; margin-bottom:8px; }
+.api-block:last-child { margin-bottom:0; }
+.api-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.api-dot { width:9px; height:9px; border-radius:50%; background:#ccc; flex-shrink:0; }
+.api-dot.ready { background:#4caf50; }
+.api-dot.active { background:#f59e0b; }
+.api-dot.error { background:#e53935; }
+.api-title { font-weight:bold; font-size:13px; }
+.range-row { display:flex; gap:6px; align-items:center; margin-top:8px; font-size:12px; }
+.range-row input { width:58px; flex:0 0 auto; }
+.range-row label { white-space:nowrap; margin:0; }
+
+/* Tabs */
+.tabs { display:flex; margin-bottom:12px; }
+.tab { padding:5px 14px; border:1px solid #ddd; background:#f0f0f0; cursor:pointer; font-family:Georgia,serif; font-size:13px; }
+.tab:first-child { border-radius:4px 0 0 4px; }
+.tab:last-child { border-radius:0 4px 4px 0; border-left:none; }
+.tab.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* Thumbs */
+.thumb-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(72px,1fr)); gap:5px; margin-top:10px; }
+.thumb-wrap { border:2px solid #eee; border-radius:3px; overflow:hidden; position:relative; }
+.thumb-wrap img { width:100%; display:block; }
+.thumb-wrap.in-range { border-color:#888; }
+.page-badge { position:absolute; bottom:2px; left:2px; background:rgba(0,0,0,0.65); color:#fff; font-size:9px; padding:1px 4px; border-radius:2px; font-family:monospace; }
+
+/* Answer Panels */
+.answer-panel { border:1px solid #ddd; border-radius:6px; margin-bottom:8px; overflow:hidden; }
+.answer-head { display:flex; align-items:center; gap:8px; padding:9px 12px; background:#f5f5f5; cursor:pointer; user-select:none; }
+.answer-head:hover { background:#ebebeb; }
+.answer-dot { width:9px; height:9px; border-radius:50%; background:#ccc; flex-shrink:0; }
+.answer-dot.active { background:#f59e0b; }
+.answer-dot.done { background:#4caf50; }
+.answer-dot.error { background:#e53935; }
+.answer-chevron { margin-left:auto; font-size:11px; color:#888; }
+.answer-body { padding:10px 12px; border-top:1px solid #eee; }
+.answer-box { background:#f9f9f7; border:1px solid #ddd; border-radius:4px; padding:10px; min-height:60px; font-size:13px; line-height:1.6; white-space:pre-wrap; max-height:280px; overflow-y:auto; }
+.answer-actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Saved cards */
+.saved-card { border:1px solid #ddd; border-radius:4px; padding:10px; margin-bottom:8px; background:#fafafa; position:relative; }
+.saved-card h3 { font-size:12px; color:#888; margin-bottom:5px; }
+.saved-card pre { font-family:Georgia,serif; font-size:12px; white-space:pre-wrap; max-height:80px; overflow:hidden; color:#333; }
+.saved-card.expanded pre { max-height:none; }
+.saved-card .expand-btn { font-size:11px; color:#555; cursor:pointer; text-decoration:underline; background:none; border:none; padding:3px 0; }
+.saved-card .del-btn { position:absolute; top:8px; right:8px; font-size:11px; padding:2px 7px; }
+.compile-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+
+/* File list */
+.file-list { margin-top:10px; }
+.file-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #eee; font-size:12px; }
+.file-item:last-child { border-bottom:none; }
+.file-name { flex:1; word-break:break-all; }
+
+/* Library */
+.lib-card { border:1px solid #ddd; border-radius:6px; padding:10px 12px; margin-bottom:8px; background:#fafafa; display:flex; align-items:center; gap:10px; }
+.lib-card:hover { background:#f0f0f0; }
+.lib-icon { font-size:22px; flex-shrink:0; }
+.lib-info { flex:1; min-width:0; }
+.lib-name { font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lib-meta { font-size:11px; color:#888; margin-top:2px; }
+.lib-actions { display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; }
+.lib-empty { text-align:center; padding:30px; color:#aaa; font-size:13px; }
+
+/* Library Paywall */
+#lib-paywall { text-align:center; padding:30px 20px; }
+#lib-paywall .price { font-size:28px; font-weight:bold; margin:10px 0; }
+#lib-card-element { border:1px solid #ddd; border-radius:4px; padding:10px; background:#fff; margin:14px auto; max-width:300px; }
+#lib-pay-result { margin-top:10px; font-size:13px; }
+#lib-search { margin-bottom:10px; }
+#lib-status { font-size:11px; color:#888; margin-bottom:6px; min-height:16px; }
+.nav-tabs { display:flex; border-bottom:2px solid #1a1a1a; margin-bottom:16px; }
+.nav-tab { padding:7px 16px; font-family:Georgia,serif; font-size:13px; cursor:pointer; border:1px solid transparent; border-bottom:none; border-radius:4px 4px 0 0; margin-bottom:-2px; color:#666; }
+.nav-tab.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.nav-tab:hover:not(.active) { background:#f5f5f5; color:#1a1a1a; }
+.nav-panel { display:none; }
+.nav-panel.active { display:block; }
+
+/* Debug */
+#debug-log { background:#111; color:#0f0; font-family:monospace; font-size:11px; padding:10px; border-radius:4px; min-height:70px; max-height:180px; overflow-y:auto; white-space:pre-wrap; line-height:1.5; }
+.log-info { color:#0f0; }
+.log-warn { color:#ff0; }
+.log-error { color:#f55; }
+.log-api { color:#0cf; }
+.log-supa { color:#c9f; }
+#status-bar { font-size:12px; color:#555; padding:5px 0; min-height:20px; }
+small { font-size:11px; color:#888; }
+
+/* Mass Automation */
+#mass-section { border-color:#2e5ca8; }
+#mass-section h2 { color:#2e5ca8; }
+.mass-bar-bg { background:#dde6fc; border-radius:4px; height:10px; overflow:hidden; margin:6px 0; }
+.mass-bar-fill { background:#2e5ca8; height:10px; width:0%; transition:width 0.4s; border-radius:4px; }
+.mass-log { background:#0a0e1a; color:#7ab3ff; font-family:monospace; font-size:11px; padding:8px; border-radius:4px; max-height:180px; overflow-y:auto; white-space:pre-wrap; margin-top:8px; }
+.mass-batch-list { margin-top:8px; max-height:220px; overflow-y:auto; }
+.mass-batch-item { display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:3px; font-size:12px; margin-bottom:3px; background:#f8f9ff; border:1px solid #e0e8ff; }
+.mass-batch-item.done { background:#e8f5e9; border-color:#a5d6a7; }
+.mass-batch-item.active { background:#fff3cd; border-color:#ffc107; }
+.mass-batch-item.waiting { background:#f0f4ff; border-color:#b3c6f5; color:#888; }
+.mass-batch-item.error { background:#fdecea; border-color:#f5c6cb; }
+.mbdot { width:8px; height:8px; border-radius:50%; background:#ccc; flex-shrink:0; }
+.mbdot.done { background:#4caf50; }
+.mbdot.active { background:#f59e0b; animation:pulse 1s infinite; }
+.mbdot.error { background:#e53935; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.keys-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+@media(max-width:520px) { .keys-grid { grid-template-columns:1fr; } }
+
+/* Countdown timer */
+.countdown-box { display:inline-block; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; padding:6px 14px; font-size:13px; font-family:monospace; margin-top:6px; }
+.countdown-box.done { background:#e8f5e9; border-color:#4caf50; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Biology Tutor v7</h1>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <div class="nav-tab active" id="ntab-tutor" onclick="switchNav('tutor')">MCQ Generator</div>
+  <div class="nav-tab" id="ntab-mass" onclick="switchNav('mass')">⚡ Mass Automation</div>
+  <div class="nav-tab" id="ntab-library" onclick="switchNav('library')">📚 Library</div>
+</div>
+
+<!-- ══ MCQ GENERATOR PANEL ══ -->
+<div class="nav-panel active" id="npanel-tutor">
+
+<section>
+  <h2>Workflow Checklist</h2>
+  <div id="checklist">
+    <div class="ck-item" id="ck-supa"><span class="ck-dot"></span>Supabase</div>
+    <div class="ck-item" id="ck-keys"><span class="ck-dot"></span>Keys</div>
+    <div class="ck-item" id="ck-pdf"><span class="ck-dot"></span>PDF loaded</div>
+    <div class="ck-item" id="ck-range"><span class="ck-dot"></span>Ranges set</div>
+    <div class="ck-item" id="ck-mcq"><span class="ck-dot"></span>MCQ count</div>
+    <div class="ck-item" id="ck-saved"><span class="ck-dot"></span>Responses saved</div>
+    <div class="ck-item" id="ck-compiled"><span class="ck-dot"></span>Compiled</div>
+  </div>
+  <div id="checklist-warn" style="font-size:11px;color:#e65100;margin-top:4px;"></div>
+</section>
+
+<section>
+  <h2>Supabase Storage <small style="font-size:10px;text-transform:none;letter-spacing:0;color:#2e7d32;">● Pre-configured</small></h2>
+  <div class="row" style="margin-bottom:8px;">
+    <div><label>Project URL</label><input type="text" id="supa-url" oninput="checkList()" /></div>
+    <div><label>Anon Key</label><input type="password" id="supa-key" oninput="checkList()" /></div>
+    <button onclick="saveSupabase()" class="btn-fix">Save</button>
+  </div>
+  <div class="row" style="margin-bottom:8px;">
+    <div><label>Bucket name</label><input type="text" id="supa-bucket" value="biology-files" /></div>
+    <button class="sec btn-fix" onclick="listFiles()">List Files</button>
+  </div>
+  <div id="file-list" class="file-list"></div>
+</section>
+
+<section>
+  <h2>MCQ Settings</h2>
+  <div class="row" style="margin-bottom:10px;">
+    <div>
+      <label>Total MCQs per API call</label>
+      <input type="number" id="mcq-count" value="20" min="1" max="200" oninput="checkList()" />
+    </div>
+    <div style="align-self:flex-end;">
+      <small id="mcq-split-info" style="display:block;margin-bottom:6px;"></small>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#555;background:#f5f5f5;border:1px solid #eee;border-radius:4px;padding:8px;line-height:1.7;">
+    <strong>Fixed difficulty:</strong> 60% Easy · 30% Moderate · 10% Difficult<br>
+    <strong>Source:</strong> Strictly from provided page images — no external knowledge<br>
+    <strong>Token limit:</strong> 8,000 max tokens per request · <strong>Rate limit:</strong> 65s cooldown between rounds
+  </div>
+</section>
+
+<section>
+  <h2>API Keys — Groq (up to 10)</h2>
+  <div class="keys-grid" id="keys-container"></div>
+</section>
+
+<section>
+  <h2>Upload</h2>
+  <div class="tabs">
+    <div class="tab active" id="tab-pdf" onclick="switchTab('pdf')">PDF</div>
+    <div class="tab" id="tab-img" onclick="switchTab('img')">Image</div>
+  </div>
+  <div class="panel active" id="panel-pdf">
+    <input type="file" accept=".pdf" onchange="loadPDF(this)" />
+    <div id="page-count" style="font-size:12px;color:#555;margin-top:6px;"></div>
+    <div id="thumb-grid" class="thumb-grid"></div>
+  </div>
+  <div class="panel" id="panel-img">
+    <input type="file" accept="image/*" onchange="loadImage(this)" />
+    <img id="img-preview" style="max-width:100%;margin-top:8px;display:none;border:1px solid #ddd;border-radius:4px;" />
+  </div>
+</section>
+
+<section>
+  <h2>Send to API — Parallel</h2>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="send-btns">
+    <button onclick="sendAllKeys()" id="sendAllBtn" style="background:#2e5ca8;border-color:#2e5ca8;">▶▶ Fire All Active Keys</button>
+  </div>
+  <div id="status-bar"></div>
+  <div id="answer-panels"></div>
+</section>
+
+<section>
+  <h2>Saved Responses <small style="font-size:10px;text-transform:none;letter-spacing:0;">(max 10)</small></h2>
+  <div id="saved-list"><small style="color:#aaa;">No saved responses yet.</small></div>
+  <div class="compile-bar">
+    <button onclick="compileToDocx()" id="compile-btn" disabled>Compile to Word (.docx)</button>
+    <button onclick="compileToPDF()" id="compile-pdf-btn" disabled style="background:#8b1a1a;border-color:#8b1a1a;">Compile to PDF</button>
+    <button class="sec danger" onclick="clearAllSaved()" style="font-size:12px;padding:5px 10px;">Clear All</button>
+    <small id="compile-status"></small>
+  </div>
+</section>
+
+<section id="upload-compiled-section" style="display:none;">
+  <h2>Upload Compiled File to Supabase</h2>
+  <div class="row">
+    <small id="compiled-filename" style="flex:1;font-size:13px;"></small>
+    <button onclick="uploadCompiledToSupabase()" id="upload-compiled-btn">⬆ Upload to Library</button>
+  </div>
+  <div id="upload-compiled-status" style="font-size:12px;color:#555;margin-top:6px;"></div>
+</section>
+
+<section>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <h2 style="margin:0;">Debug Log</h2>
+    <button class="sec" style="font-size:11px;padding:2px 7px;" onclick="clearLog()">Clear</button>
+  </div>
+  <div id="debug-log"></div>
+</section>
+</div><!-- /npanel-tutor -->
+
+<!-- ══ MASS AUTOMATION PANEL ══ -->
+<div class="nav-panel" id="npanel-mass">
+<section id="mass-section">
+  <h2>⚡ Mass Automation — Full PDF Processing</h2>
+  <p style="font-size:12px;color:#555;margin-bottom:14px;line-height:1.7;">
+    Upload a large PDF. The system divides it into rounds, fires all APIs in parallel per round,
+    waits 65 seconds between rounds (rate-limit compliance), compiles each round in strict key order,
+    then moves to the next round — fully unattended.
+  </p>
+
+  <div style="margin-bottom:12px;">
+    <label>Upload PDF (any size)</label>
+    <input type="file" accept=".pdf" id="mass-pdf-input" onchange="massPDFLoaded(this)" />
+    <div id="mass-pdf-info" style="font-size:12px;color:#555;margin-top:5px;"></div>
+  </div>
+
+  <hr>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div>
+      <label>Pages per API call</label>
+      <input type="number" id="mass-pages-per-api" value="5" min="1" max="5" oninput="updateMassPreview()" />
+      <small>Max 5 (TPM limit)</small>
+    </div>
+    <div>
+      <label>Number of APIs to use</label>
+      <input type="number" id="mass-api-count" value="3" min="1" max="10" oninput="updateMassPreview()" />
+      <small>Uses Keys 1–N (must be saved)</small>
+    </div>
+    <div>
+      <label>MCQs per API call</label>
+      <input type="number" id="mass-mcq-per-api" value="20" min="1" max="200" />
+    </div>
+  </div>
+
+  <div id="mass-preview" style="font-size:12px;background:#f0f4ff;border:1px solid #b3c6f5;border-radius:4px;padding:8px;margin-bottom:12px;display:none;line-height:1.8;"></div>
+
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button onclick="startMassAutomation()" id="mass-start-btn" style="background:#2e5ca8;border-color:#2e5ca8;font-size:15px;padding:9px 22px;">
+      ⚡ Start Mass Automation
+    </button>
+    <button onclick="stopMassAutomation()" id="mass-stop-btn" class="danger" style="display:none;">■ Stop</button>
+    <small id="mass-status-line" style="font-size:12px;color:#555;"></small>
+  </div>
+</section>
+
+<section id="mass-progress-section" style="display:none;">
+  <h2>Progress</h2>
+  <div style="background:#f0f4ff;border:1px solid #b3c6f5;border-radius:6px;padding:12px;font-size:12px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span id="mass-prog-label">Round 0 / 0</span>
+      <span id="mass-prog-pct">0%</span>
+    </div>
+    <div class="mass-bar-bg"><div class="mass-bar-fill" id="mass-bar-fill"></div></div>
+    <div style="font-size:11px;color:#555;" id="mass-prog-detail"></div>
+    <div id="mass-countdown-wrap" style="display:none;margin-top:6px;">
+      <span class="countdown-box" id="mass-countdown">Waiting…</span>
+    </div>
+  </div>
+  <div class="mass-batch-list" id="mass-batch-list"></div>
+  <div class="mass-log" id="mass-log"></div>
+</section>
+
+<section id="mass-files-section" style="display:none;">
+  <h2>Mass Run Output Files</h2>
+  <p style="font-size:12px;color:#555;margin-bottom:10px;">MCQs are numbered sequentially across all keys and rounds. Each file covers one round.</p>
+  <div id="mass-files-list"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="compileMegaDoc('docx')" id="mega-docx-btn" style="background:#1a6e3c;border-color:#1a6e3c;">📄 Compile All → Word (.docx)</button>
+    <button onclick="compileMegaDoc('pdf')"  id="mega-pdf-btn"  style="background:#8b1a1a;border-color:#8b1a1a;">📕 Compile All → PDF</button>
+    <button onclick="uploadAllMassFiles()"   id="mass-upload-all-btn" style="background:#2e5ca8;border-color:#2e5ca8;">⬆ Upload All to Library</button>
+  </div>
+  <div id="mass-compile-status" style="font-size:12px;color:#555;margin-top:8px;"></div>
+</section>
+</div><!-- /npanel-mass -->
+
+<!-- ══ LIBRARY PANEL ══ -->
+<div class="nav-panel" id="npanel-library">
+
+<div id="lib-paywall" class="lib-card" style="display:none; flex-direction:column;">
+  <h2>🔒 Library Access</h2>
+  <p>Unlock the shared MCQ library for a small fee (test payment).</p>
+  <div class="price">₨10</div>
+  <div id="lib-card-element"></div>
+  <button onclick="payForLibrary()" id="lib-pay-btn">Pay ₨10 to Unlock</button>
+  <div id="lib-pay-result"></div>
+</div>
+
+<div id="lib-content" style="display:none;">
+<section>
+  <h2>MCQ Library — Shared Files</h2>
+  <div class="row" style="margin-bottom:8px;">
+    <input type="text" id="lib-search" placeholder="Search by filename…" oninput="filterLibrary()" />
+    <button class="sec btn-fix" onclick="loadLibrary()">↻ Refresh</button>
+  </div>
+  <div id="lib-status"></div>
+  <div id="lib-list"><div class="lib-empty">Click Refresh to load the library.</div></div>
+</section>
+</div><!-- /lib-content -->
+
+</div><!-- /npanel-library -->
+
+</div><!-- /container -->
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const MODEL        = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const ENDPOINT     = 'https://api.groq.com/openai/v1/chat/completions';
+const MAX_TOKENS   = 8000;
+const BATCH_MAX    = 5;   // hard cap: 5 pages per API call (TPM limit)
+const NUM_KEYS     = 10;
+const ROUND_DELAY  = 65000; // 65 seconds between rounds
+
+const SUPA_URL_DEFAULT    = 'https://xdosmjqwwnsqkzvfiuqr.supabase.co';
+const SUPA_KEY_DEFAULT    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhkb3NtanF3d25zcWt6dmZpdXFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDQ5NzksImV4cCI6MjA5NjU4MDk3OX0.6SgutlajGgv_2ebQ1-_EWDOOZ4XvY_hlMxyUbLXEXwI';
+const SUPA_BUCKET_DEFAULT = 'biology-files';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let pages           = [];
+let singleImage     = null;
+let savedResponses  = [];
+let compiledBlob    = null;
+let compiledFilename= '';
+let allLibFiles     = [];
+
+let massPages       = [];
+let massRunning     = false;
+let massAbort       = false;
+let massRoundFiles  = [];
+let globalMCQCounter= 0; // running MCQ number across all rounds
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function xmlEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Renumber MCQs sequentially starting at `startN` ─────────────────────────
+// Finds lines like "Question 1 [EASY]:" or "Question [3] [MODERATE]:" and renumbers them
+function renumberMCQs(text, startN) {
+  let counter = startN;
+  // Match patterns: "Question 1 [EASY]:" or "Question [1] [EASY]:" or "Q1." etc.
+  const reNumbered = text.replace(
+    /^(Question\s*)(\[?\d+\]?)(\s*\[(?:EASY|MODERATE|DIFFICULT)\].*)/gim,
+    (match, prefix, _num, rest) => {
+      return prefix + counter++ + rest;
+    }
+  );
+  return { text: reNumbered, endN: counter };
+}
+
+// ── Build dynamic UI (keys + answer panels) ───────────────────────────────────
+(function buildKeyUI() {
+  const container = document.getElementById('keys-container');
+  const sendBtns  = document.getElementById('send-btns');
+  const panels    = document.getElementById('answer-panels');
+
+  for (let n = 1; n <= NUM_KEYS; n++) {
+    const block = document.createElement('div');
+    block.className = 'api-block';
+    block.innerHTML = `
+      <div class="api-head"><span class="api-dot" id="dot${n}"></span><span class="api-title">Key ${n}</span></div>
+      <div class="row">
+        <input type="password" id="key${n}" placeholder="gsk_..." oninput="checkList()" />
+        <button class="sec btn-fix" onclick="saveKey(${n})">Save</button>
+      </div>
+      <div class="range-row">
+        <label>Pages:</label>
+        <input type="number" id="from${n}" placeholder="${(n-1)*5+1}" min="1" oninput="updateRangeInfo(${n})" />
+        <label>to</label>
+        <input type="number" id="to${n}" placeholder="${n*5}" min="1" oninput="updateRangeInfo(${n})" />
+        <small id="range-info${n}"></small>
+      </div>`;
+    container.appendChild(block);
+
+    const btn = document.createElement('button');
+    btn.id = 'send'+n; btn.className = 'sec';
+    btn.textContent = '▶ K'+n;
+    btn.onclick = () => sendWithKey(n);
+    sendBtns.insertBefore(btn, document.getElementById('sendAllBtn'));
+
+    const panel = document.createElement('div');
+    panel.className = 'answer-panel'; panel.id = 'apanel'+n;
+    panel.innerHTML = `
+      <div class="answer-head" onclick="toggleAnswer(${n})">
+        <span class="answer-dot" id="adot${n}"></span>
+        <strong>Key ${n} Response</strong>
+        <span id="astatus${n}" style="font-size:11px;color:#888;margin-left:8px;"></span>
+        <span class="answer-chevron" id="achev${n}">▼</span>
+      </div>
+      <div class="answer-body" id="abody${n}" style="display:none;">
+        <div class="answer-box" id="answer-box${n}">Waiting for response…</div>
+        <div class="answer-actions">
+          <button class="sec" onclick="saveResponseFrom(${n})" id="save${n}">Save (0/10)</button>
+          <button class="sec" onclick="clearAnswerBox(${n})">Clear</button>
+        </div>
+      </div>`;
+    panels.appendChild(panel);
+  }
+})();
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function init() {
+  document.getElementById('supa-url').value    = localStorage.getItem('supa-url')    || SUPA_URL_DEFAULT;
+  document.getElementById('supa-key').value    = localStorage.getItem('supa-key')    || SUPA_KEY_DEFAULT;
+  document.getElementById('supa-bucket').value = localStorage.getItem('supa-bucket') || SUPA_BUCKET_DEFAULT;
+
+  for (let n = 1; n <= NUM_KEYS; n++) {
+    const v = localStorage.getItem('groq_key'+n);
+    if (v) { document.getElementById('key'+n).value = v; setDot(n,'ready'); }
+    const f = localStorage.getItem('from'+n), t = localStorage.getItem('to'+n);
+    if (f) document.getElementById('from'+n).value = f;
+    if (t) document.getElementById('to'+n).value   = t;
+  }
+  const mc = localStorage.getItem('mcq-count');
+  if (mc) document.getElementById('mcq-count').value = mc;
+
+  for (let n = 1; n <= NUM_KEYS; n++) updateRangeInfo(n);
+  renderSaved(); updateSaveBtns(); checkList();
+  log('info','Biology Tutor v7 ready. Rate-limit aware · Ordered MCQs · True PDF download.');
+})();
+
+// ── System prompt ─────────────────────────────────────────────────────────────
+function buildSystemPrompt(pageCount, totalMCQs, startQNum) {
+  const easy = Math.round(totalMCQs * 0.6);
+  const mod  = Math.round(totalMCQs * 0.3);
+  const hard = totalMCQs - easy - mod;
+  return `You are an expert medical biology MCQ generator.
+
+TASK: Generate exactly ${totalMCQs} MCQs from the provided page image(s).
+START NUMBERING from Question ${startQNum} (continue from previous batch).
+
+DISTRIBUTION RULES:
+- Processing ${pageCount} page(s). Distribute MCQs proportionally by content density.
+- Do NOT cluster questions from one page.
+
+DIFFICULTY SPLIT (strictly follow):
+- Easy: ${easy} MCQs [60%] — label [EASY]
+- Moderate: ${mod} MCQs [30%] — label [MODERATE]
+- Difficult: ${hard} MCQs [remainder] — label [DIFFICULT]
+
+SOURCE RULE: ALL questions strictly from provided images only. No external knowledge. No fabrication.
+
+EXACT FORMAT (no deviation):
+Question ${startQNum} [EASY/MODERATE/DIFFICULT]: [question text]
+1. [option A]
+2. [option B]
+3. [option C]
+4. [option D]
+Correct option: [number]
+Explanation: [under 100 words]
+
+Begin generating ${totalMCQs} MCQs now starting at Question ${startQNum}.`;
+}
+
+// ── Checklist ─────────────────────────────────────────────────────────────────
+function checkList() {
+  const supaOk = document.getElementById('supa-url').value.trim() &&
+                 document.getElementById('supa-key').value.trim();
+  setCk('ck-supa', supaOk);
+  let kc=0;
+  for (let n=1;n<=NUM_KEYS;n++) if(document.getElementById('key'+n).value.trim().length>10) kc++;
+  setCk('ck-keys', kc>0);
+  setCk('ck-pdf', pages.length>0);
+  let rs=false;
+  for (let n=1;n<=NUM_KEYS;n++) {
+    const f=parseInt(document.getElementById('from'+n).value)||0;
+    const t=parseInt(document.getElementById('to'+n).value)||0;
+    if(f>0&&t>=f){rs=true;break;}
+  }
+  setCk('ck-range',rs);
+  const mcq=parseInt(document.getElementById('mcq-count').value)||0;
+  setCk('ck-mcq',mcq>0);
+  updateMcqSplitInfo(mcq);
+  setCk('ck-saved',savedResponses.length>0);
+  setCk('ck-compiled',compiledBlob!==null);
+}
+function setCk(id,done) {
+  const el=document.getElementById(id); if(!el)return;
+  el.className='ck-item '+(done?'done':'');
+  el.querySelector('.ck-dot').style.background=done?'#4caf50':'#ccc';
+}
+function updateMcqSplitInfo(n) {
+  const e=Math.round(n*0.6),m=Math.round(n*0.3),h=n-e-m;
+  document.getElementById('mcq-split-info').textContent=n>0?`→ ${e} easy · ${m} mod · ${h} hard`:'';
+}
+
+// ── Supabase ──────────────────────────────────────────────────────────────────
+function saveSupabase() {
+  ['supa-url','supa-key','supa-bucket'].forEach(id=>
+    localStorage.setItem(id,document.getElementById(id).value.trim()));
+  log('supa','Supabase saved.'); setStatus('Supabase saved.'); checkList();
+}
+function getSupaConfig() {
+  return {
+    url:    document.getElementById('supa-url').value.trim()    || SUPA_URL_DEFAULT,
+    key:    document.getElementById('supa-key').value.trim()    || SUPA_KEY_DEFAULT,
+    bucket: document.getElementById('supa-bucket').value.trim() || SUPA_BUCKET_DEFAULT
+  };
+}
+async function listFiles() {
+  const {url,key,bucket}=getSupaConfig();
+  log('supa','Listing bucket: '+bucket);
+  try {
+    const res=await fetch(`${url}/storage/v1/object/list/${bucket}`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json','apikey':key},
+      body:JSON.stringify({prefix:'',limit:100,offset:0})
+    });
+    const data=await res.json();
+    if(!res.ok){log('error','List error: '+JSON.stringify(data));return;}
+    renderFileList(data,url,key,bucket);
+    log('supa','Found '+data.length+' file(s).');
+  } catch(e){log('error','List error: '+e.message);}
+}
+function renderFileList(files,url,key,bucket) {
+  const div=document.getElementById('file-list');
+  if(!files||!files.length){div.innerHTML='<small style="color:#aaa;">No files found.</small>';return;}
+  div.innerHTML='';
+  files.forEach(f=>{
+    const pub=`${url}/storage/v1/object/public/${bucket}/${encodeURIComponent(f.name)}`;
+    const item=document.createElement('div'); item.className='file-item';
+    item.innerHTML=`<span class="file-name">${escHtml(f.name)}</span>
+      <a href="${pub}" target="_blank" style="font-size:11px;">View</a>
+      <a href="${pub}" download="${f.name}" style="font-size:11px;">Download</a>
+      <button class="sec danger" style="font-size:11px;padding:2px 6px;" onclick="deleteFile('${escHtml(f.name)}')">Del</button>`;
+    div.appendChild(item);
+  });
+}
+async function uploadToSupabase(blob,fileName) {
+  const {url,key,bucket}=getSupaConfig();
+  log('supa','Uploading: '+fileName);
+  try {
+    const res=await fetch(`${url}/storage/v1/object/${bucket}/${encodeURIComponent(fileName)}`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'apikey':key,'Content-Type':blob.type||'application/octet-stream'},
+      body:blob
+    });
+    const data=await res.json();
+    if(!res.ok){log('error','Upload error: '+JSON.stringify(data));return false;}
+    log('supa','Uploaded: '+fileName); return true;
+  } catch(e){log('error','Upload error: '+e.message);return false;}
+}
+async function deleteFile(name) {
+  const {url,key,bucket}=getSupaConfig();
+  if(!confirm('Delete '+name+'?'))return;
+  try {
+    const res=await fetch(`${url}/storage/v1/object/${bucket}`,{
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+key,'apikey':key,'Content-Type':'application/json'},
+      body:JSON.stringify({prefixes:[name]})
+    });
+    if(res.ok){log('supa','Deleted: '+name);listFiles();}
+    else log('error','Delete failed.');
+  } catch(e){log('error','Delete error: '+e.message);}
+}
+async function uploadCompiledToSupabase() {
+  if(!compiledBlob){log('error','No compiled file ready.');return;}
+  const btn=document.getElementById('upload-compiled-btn');
+  const statusEl=document.getElementById('upload-compiled-status');
+  btn.disabled=true; btn.textContent='Uploading…'; statusEl.textContent='';
+  const ok=await uploadToSupabase(compiledBlob,compiledFilename);
+  btn.disabled=false; btn.textContent='⬆ Upload to Library';
+  statusEl.textContent=ok?'✓ Uploaded! Check the Library tab.':'✗ Upload failed.';
+}
+
+// ── Keys ──────────────────────────────────────────────────────────────────────
+function saveKey(n) {
+  const v=document.getElementById('key'+n).value.trim();
+  if(!v){log('warn','Key '+n+' empty.');return;}
+  localStorage.setItem('groq_key'+n,v); setDot(n,'ready'); checkList();
+  log('api','Key '+n+' saved.');
+}
+function getKey(n){return document.getElementById('key'+n).value.trim();}
+function setDot(n,s){const el=document.getElementById('dot'+n);if(el)el.className='api-dot '+s;}
+
+// ── Ranges ────────────────────────────────────────────────────────────────────
+function updateRangeInfo(n) {
+  const f=parseInt(document.getElementById('from'+n).value)||0;
+  const t=parseInt(document.getElementById('to'+n).value)||0;
+  const info=document.getElementById('range-info'+n); if(!info)return;
+  if(f&&t&&t>=f) {
+    const cnt=t-f+1;
+    info.textContent=cnt+' pages';
+    info.style.color=cnt>BATCH_MAX?'#c00':'#4a4';
+    localStorage.setItem('from'+n,f); localStorage.setItem('to'+n,t);
+  } else {info.textContent='';}
+  highlightRanges(); checkList();
+}
+function highlightRanges() {
+  document.querySelectorAll('.thumb-wrap').forEach(tw=>{
+    const p=parseInt(tw.dataset.page); tw.className='thumb-wrap';
+    for(let n=1;n<=NUM_KEYS;n++){
+      const f=parseInt(document.getElementById('from'+n).value)||0;
+      const t=parseInt(document.getElementById('to'+n).value)||0;
+      if(f&&t&&p>=f&&p<=t) tw.classList.add('in-range');
+    }
+  });
+}
+function getPagesForKey(n) {
+  const f=parseInt(document.getElementById('from'+n).value);
+  const t=parseInt(document.getElementById('to'+n).value);
+  if(!f||!t||t<f)return null;
+  const sub=pages.filter(p=>p.pageNum>=f&&p.pageNum<=t);
+  if(!sub.length){log('warn','Key '+n+': no pages in range '+f+'–'+t);return null;}
+  if(sub.length>BATCH_MAX){log('warn','Key '+n+': capping at '+BATCH_MAX);return sub.slice(0,BATCH_MAX);}
+  return sub;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  ['pdf','img'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+    document.getElementById('panel-'+x).classList.toggle('active',x===t);
+  });
+}
+
+// ── PDF render ────────────────────────────────────────────────────────────────
+async function loadPDF(input) {
+  const file=input.files[0]; if(!file)return;
+  setStatus('Reading PDF...'); pages=[];
+  document.getElementById('thumb-grid').innerHTML='';
+  document.getElementById('page-count').textContent='';
+  log('info','PDF: '+file.name+' ('+Math.round(file.size/1024)+' KB)');
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  log('info','Total pages: '+pdf.numPages);
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const vp=page.getViewport({scale:1.5});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    pages.push({base64:canvas.toDataURL('image/png').split(',')[1],mime:'image/png',pageNum:p});
+    if(p%10===0||p===pdf.numPages)
+      document.getElementById('page-count').textContent='Rendered '+p+'/'+pdf.numPages+'…';
+  }
+  renderThumbs();
+  document.getElementById('page-count').textContent=pdf.numPages+' pages loaded.';
+  setStatus('PDF ready — '+pdf.numPages+' pages.');
+  log('info','All pages rendered.');
+  for(let n=1;n<=NUM_KEYS;n++) updateRangeInfo(n);
+  checkList();
+}
+function renderThumbs() {
+  const grid=document.getElementById('thumb-grid'); grid.innerHTML='';
+  pages.forEach(pg=>{
+    const wrap=document.createElement('div');
+    wrap.className='thumb-wrap'; wrap.dataset.page=pg.pageNum;
+    const img=document.createElement('img');
+    img.src='data:image/png;base64,'+pg.base64;
+    const badge=document.createElement('div');
+    badge.className='page-badge'; badge.textContent='p'+pg.pageNum;
+    wrap.appendChild(img); wrap.appendChild(badge); grid.appendChild(wrap);
+  });
+  highlightRanges();
+}
+function loadImage(input) {
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    singleImage={base64:e.target.result.split(',')[1],mime:file.type};
+    const p=document.getElementById('img-preview');
+    p.src=e.target.result; p.style.display='block';
+    log('info','Image loaded: '+file.name); checkList();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Answer panel UI ───────────────────────────────────────────────────────────
+function toggleAnswer(n) {
+  const body=document.getElementById('abody'+n);
+  const chev=document.getElementById('achev'+n);
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  chev.textContent=open?'▼':'▲';
+}
+function openAnswer(n){document.getElementById('abody'+n).style.display='block';document.getElementById('achev'+n).textContent='▲';}
+function setAnswerDot(n,s){const el=document.getElementById('adot'+n);if(el)el.className='answer-dot '+s;}
+function setAnswerStatus(n,t){const el=document.getElementById('astatus'+n);if(el)el.textContent=t;}
+
+// ── Manual send ───────────────────────────────────────────────────────────────
+async function sendWithKey(n) {
+  const key=getKey(n); if(!key){log('error','Key '+n+' not set.');return;}
+  const images=getImages(n); if(!images)return;
+  const totalMCQs=parseInt(document.getElementById('mcq-count').value)||20;
+  const sysPrompt=buildSystemPrompt(images.length,totalMCQs,1);
+  log('api','Key '+n+' | '+images.length+' pages | '+totalMCQs+' MCQs');
+  await callGroq(key,n,images,sysPrompt);
+}
+async function sendAllKeys() {
+  const promises=[];
+  for(let n=1;n<=NUM_KEYS;n++){
+    const key=getKey(n); if(!key)continue;
+    const images=getImages(n); if(!images)continue;
+    const totalMCQs=parseInt(document.getElementById('mcq-count').value)||20;
+    const sysPrompt=buildSystemPrompt(images.length,totalMCQs,1);
+    log('api','[ALL] Firing Key '+n+' | '+images.length+' pages');
+    promises.push(callGroq(key,n,images,sysPrompt));
+  }
+  if(!promises.length){setStatus('No keys with valid ranges.');return;}
+  setStatus('All active keys firing…');
+  await Promise.allSettled(promises);
+  setStatus('All keys done.');
+}
+function getImages(n) {
+  if(document.getElementById('panel-pdf').classList.contains('active')){
+    if(!pages.length){log('error','No PDF loaded.');return null;}
+    const sub=getPagesForKey(n);
+    if(!sub){log('error','Key '+n+': set a valid page range.');return null;}
+    return sub.map(p=>({base64:p.base64,mime:p.mime}));
+  }
+  if(!singleImage){log('error','No image loaded.');return null;}
+  return [singleImage];
+}
+
+// ── callGroq (with UI panel update) ──────────────────────────────────────────
+async function callGroq(key,keyNum,images,systemPrompt) {
+  const content=images.map(img=>({type:'image_url',image_url:{url:'data:'+img.mime+';base64,'+img.base64}}));
+  content.push({type:'text',text:'Generate the MCQs now as instructed.'});
+  setAnswerDot(keyNum,'active'); setAnswerStatus(keyNum,'Sending…');
+  openAnswer(keyNum);
+  document.getElementById('answer-box'+keyNum).textContent='Waiting for Groq…';
+  try {
+    const res=await fetch(ENDPOINT,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:MAX_TOKENS,
+        messages:[{role:'system',content:systemPrompt},{role:'user',content}]})
+    });
+    const data=await res.json();
+    log('api','Key'+keyNum+' status:'+res.status+' tokens:'+JSON.stringify(data.usage||{}));
+    if(!res.ok){
+      const msg=data?.error?.message||res.statusText;
+      document.getElementById('answer-box'+keyNum).textContent='Error: '+msg;
+      setAnswerDot(keyNum,'error'); setAnswerStatus(keyNum,'Error');
+      log('error','Key '+keyNum+': '+msg);
+      return {ok:false,rateLimit:res.status===429,error:msg};
+    }
+    const answer=data.choices[0].message.content;
+    document.getElementById('answer-box'+keyNum).textContent=answer;
+    setAnswerDot(keyNum,'done');
+    setAnswerStatus(keyNum,(data.usage?.completion_tokens||'?')+' tokens');
+    setStatus('Key '+keyNum+' done.');
+    checkList();
+    return {ok:true,text:answer};
+  } catch(e){
+    log('error','Key '+keyNum+' network: '+e.message);
+    document.getElementById('answer-box'+keyNum).textContent='Network error: '+e.message;
+    setAnswerDot(keyNum,'error'); setAnswerStatus(keyNum,'Network error');
+    return {ok:false,error:e.message};
+  }
+}
+
+// ── callGroqSilent (mass automation, no UI panels) ────────────────────────────
+async function callGroqSilent(key,images,systemPrompt) {
+  const content=images.map(img=>({type:'image_url',image_url:{url:'data:'+img.mime+';base64,'+img.base64}}));
+  content.push({type:'text',text:'Generate the MCQs now as instructed.'});
+  try {
+    const res=await fetch(ENDPOINT,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:MAX_TOKENS,
+        messages:[{role:'system',content:systemPrompt},{role:'user',content}]})
+    });
+    const data=await res.json();
+    if(!res.ok) return {ok:false,rateLimit:res.status===429,error:data?.error?.message||res.statusText};
+    return {ok:true,text:data.choices[0].message.content,tokens:data.usage?.completion_tokens||0};
+  } catch(e){return {ok:false,error:e.message};}
+}
+
+// ── Saved responses ───────────────────────────────────────────────────────────
+function saveResponseFrom(n) {
+  const text=document.getElementById('answer-box'+n).textContent.trim();
+  if(!text||text.startsWith('Waiting')||text.startsWith('Network')||text.startsWith('Error')){
+    log('warn','Key '+n+': nothing to save.');return;
+  }
+  if(savedResponses.length>=10){setStatus('Max 10 responses. Compile or clear first.');return;}
+  const label='Key '+n+' — '+new Date().toTimeString().slice(0,8);
+  savedResponses.push({label,text});
+  log('info','Saved: '+label);
+  renderSaved(); updateSaveBtns(); checkList();
+}
+function renderSaved() {
+  const list=document.getElementById('saved-list');
+  if(!savedResponses.length){
+    list.innerHTML='<small style="color:#aaa;">No saved responses yet.</small>';
+    document.getElementById('compile-btn').disabled=true;
+    document.getElementById('compile-pdf-btn').disabled=true;
+    return;
+  }
+  list.innerHTML='';
+  savedResponses.forEach((r,i)=>{
+    const card=document.createElement('div'); card.className='saved-card'; card.id='sc'+i;
+    card.innerHTML=`<h3>${escHtml(r.label)}</h3>
+      <pre>${escHtml(r.text)}</pre>
+      <button class="expand-btn" onclick="toggleExpand(${i})">Show more</button>
+      <button class="sec danger del-btn" onclick="deleteSaved(${i})">✕</button>`;
+    list.appendChild(card);
+  });
+  document.getElementById('compile-btn').disabled=false;
+  document.getElementById('compile-pdf-btn').disabled=false;
+}
+function updateSaveBtns() {
+  for(let n=1;n<=NUM_KEYS;n++){
+    const el=document.getElementById('save'+n);
+    if(el) el.textContent='Save ('+savedResponses.length+'/10)';
+  }
+}
+function deleteSaved(i){savedResponses.splice(i,1);renderSaved();updateSaveBtns();checkList();}
+function clearAllSaved(){
+  savedResponses=[]; compiledBlob=null;
+  renderSaved(); updateSaveBtns(); checkList();
+  document.getElementById('compile-status').textContent='';
+  document.getElementById('upload-compiled-section').style.display='none';
+}
+function clearAnswerBox(n){
+  document.getElementById('answer-box'+n).textContent='Waiting for response…';
+  setAnswerDot(n,''); setAnswerStatus(n,'');
+}
+function toggleExpand(i){
+  const c=document.getElementById('sc'+i),b=c.querySelector('.expand-btn');
+  c.classList.toggle('expanded');
+  b.textContent=c.classList.contains('expanded')?'Show less':'Show more';
+}
+
+// ── Renumber saved responses before compile (ordered 1,2,3…) ─────────────────
+function buildOrderedResponses(responses) {
+  // Renumber MCQs sequentially across all responses in order
+  let counter = 1;
+  return responses.map(r => {
+    const {text, endN} = renumberMCQs(r.text, counter);
+    counter = endN;
+    return {...r, text};
+  });
+}
+
+// ── DOCX helpers ──────────────────────────────────────────────────────────────
+function makeDocxXml(responses,title) {
+  const paras=[];
+  paras.push(`<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>${xmlEsc(title||'MCQ Bank')}</w:t></w:r></w:p>`);
+  paras.push(`<w:p><w:r><w:rPr><w:color w:val="888888"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>Generated: ${xmlEsc(new Date().toLocaleString())}</w:t></w:r></w:p>`);
+  paras.push(`<w:p/>`);
+  responses.forEach((r,i)=>{
+    paras.push(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr><w:r><w:t>${xmlEsc(r.label)}</w:t></w:r></w:p>`);
+    r.text.split('\n').forEach(line=>{
+      paras.push(`<w:p><w:r><w:t xml:space="preserve">${xmlEsc(line)||' '}</w:t></w:r></w:p>`);
+    });
+    if(i<responses.length-1){
+      paras.push(`<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="CCCCCC"/></w:pBdr></w:pPr></w:p>`);
+      paras.push(`<w:p/>`);
+    }
+  });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" mc:Ignorable="w14"><w:body>${paras.join('')}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+}
+function makeStylesXml(){
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="160" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:outlineLvl w:val="0"/><w:spacing w:before="480" w:after="160"/><w:keepNext/></w:pPr><w:rPr><w:b/><w:bCs/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:outlineLvl w:val="1"/><w:spacing w:before="360" w:after="80"/><w:keepNext/></w:pPr><w:rPr><w:b/><w:bCs/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style></w:styles>`;
+}
+function makeSettingsXml(){
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:defaultTabStop w:val="720"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>`;
+}
+async function buildDocxBlob(responses,title) {
+  const ordered = buildOrderedResponses(responses);
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>`);
+  zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file('word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>`);
+  zip.file('word/document.xml',makeDocxXml(ordered,title));
+  zip.file('word/styles.xml',makeStylesXml());
+  zip.file('word/settings.xml',makeSettingsXml());
+  return await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',compression:'DEFLATE',compressionOptions:{level:6}});
+}
+
+// ── TRUE PDF download via jsPDF ───────────────────────────────────────────────
+async function buildPDFBlob(responses, title) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 50;
+  const maxW = pageW - margin * 2;
+  let y = margin;
+
+  function addText(text, fontSize, bold, color) {
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setTextColor(...(color || [26,26,26]));
+    const lines = doc.splitTextToSize(text, maxW);
+    lines.forEach(line => {
+      if (y > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage(); y = margin;
+      }
+      doc.text(line, margin, y);
+      y += fontSize * 1.4;
+    });
+    y += 4;
+  }
+
+  const ordered = buildOrderedResponses(responses);
+  addText(title || 'MCQ Bank', 20, true, [26,26,26]);
+  addText('Generated: ' + new Date().toLocaleString(), 10, false, [120,120,120]);
+  y += 10;
+
+  ordered.forEach((r, i) => {
+    addText(r.label, 13, true, [46,92,168]);
+    r.text.split('\n').forEach(line => {
+      if (!line.trim()) { y += 6; return; }
+      addText(line, 11, false);
+    });
+    if (i < ordered.length - 1) {
+      if (y > doc.internal.pageSize.getHeight() - margin - 20) {
+        doc.addPage(); y = margin;
+      }
+      doc.setDrawColor(200,200,200);
+      doc.line(margin, y, pageW - margin, y);
+      y += 12;
+    }
+  });
+
+  return doc.output('blob');
+}
+
+async function compileToDocx() {
+  if(!savedResponses.length){log('warn','No responses to compile.');return;}
+  document.getElementById('compile-status').textContent='Building…';
+  try {
+    compiledBlob=await buildDocxBlob(savedResponses);
+    compiledFilename='mcq-bank-'+new Date().toISOString().slice(0,10)+'-'+Date.now()+'.docx';
+    triggerDownload(compiledBlob,compiledFilename);
+    document.getElementById('compile-status').textContent='✓ Downloaded: '+compiledFilename;
+    document.getElementById('compiled-filename').textContent=compiledFilename;
+    document.getElementById('upload-compiled-section').style.display='block';
+    log('info','Compiled DOCX: '+compiledFilename); checkList();
+  } catch(e){
+    log('error','Compile error: '+e.message);
+    document.getElementById('compile-status').textContent='Failed: '+e.message;
+  }
+}
+
+async function compileToPDF() {
+  if(!savedResponses.length){log('warn','No responses to compile.');return;}
+  document.getElementById('compile-status').textContent='Building PDF…';
+  try {
+    const blob = await buildPDFBlob(savedResponses, 'MCQ Bank');
+    const fname='mcq-bank-'+new Date().toISOString().slice(0,10)+'-'+Date.now()+'.pdf';
+    triggerDownload(blob, fname);
+    compiledBlob=blob; compiledFilename=fname;
+    document.getElementById('compile-status').textContent='✓ PDF downloaded: '+fname;
+    document.getElementById('compiled-filename').textContent=fname;
+    document.getElementById('upload-compiled-section').style.display='block';
+    log('info','Compiled PDF: '+fname); checkList();
+  } catch(e){
+    log('error','PDF error: '+e.message);
+    document.getElementById('compile-status').textContent='PDF failed: '+e.message;
+  }
+}
+
+function triggerDownload(blob,filename) {
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function switchNav(tab) {
+  ['tutor','mass','library'].forEach(t=>{
+    document.getElementById('ntab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('npanel-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='library') openLibrary();
+}
+
+// ── Library Paywall ───────────────────────────────────────────────────────────
+const LIB_API = 'https://stripe-demo-zfel.onrender.com';
+let libStripe, libCard, libStripeReady=false;
+
+function openLibrary() {
+  if(localStorage.getItem('libUnlocked')==='1') {
+    document.getElementById('lib-paywall').style.display='none';
+    document.getElementById('lib-content').style.display='block';
+    loadLibrary();
+  } else {
+    document.getElementById('lib-paywall').style.display='flex';
+    document.getElementById('lib-content').style.display='none';
+    initLibStripe();
+  }
+}
+
+async function initLibStripe() {
+  if(libStripeReady) return;
+  try {
+    log('api','Loading payment form...');
+    const res = await fetch(LIB_API+'/config');
+    const { publishableKey } = await res.json();
+    libStripe = Stripe(publishableKey);
+    const elements = libStripe.elements();
+    libCard = elements.create('card');
+    libCard.mount('#lib-card-element');
+    libStripeReady = true;
+    log('api','Payment form ready.');
+  } catch(e) {
+    log('error','Stripe init failed: '+e.message);
+    document.getElementById('lib-pay-result').textContent = 'Could not load payment form.';
+  }
+}
+
+async function payForLibrary() {
+  const btn=document.getElementById('lib-pay-btn');
+  const resultEl=document.getElementById('lib-pay-result');
+  btn.disabled=true; btn.textContent='Processing…';
+  resultEl.textContent='';
+  try {
+    log('api','Creating payment (₨10 test charge)...');
+    const res = await fetch(LIB_API+'/create-payment-intent', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ amount: 100 }) // Stripe min charge ~$1; ₨10 simulated
+    });
+    const data = await res.json();
+    if(data.error){ throw new Error(data.error); }
+    log('api','PaymentIntent created: '+data.id);
+    const result = await libStripe.confirmCardPayment(data.clientSecret, {
+      payment_method: { card: libCard }
+    });
+    if(result.error){
+      log('error','Payment failed: '+result.error.message);
+      resultEl.textContent='Failed: '+result.error.message;
+      btn.disabled=false; btn.textContent='Pay ₨10 to Unlock';
+      return;
+    }
+    log('api','Payment succeeded: '+result.paymentIntent.id);
+    localStorage.setItem('libUnlocked','1');
+    document.getElementById('lib-paywall').style.display='none';
+    document.getElementById('lib-content').style.display='block';
+    loadLibrary();
+  } catch(e) {
+    log('error','Payment error: '+e.message);
+    resultEl.textContent='Error: '+e.message;
+    btn.disabled=false; btn.textContent='Pay ₨10 to Unlock';
+  }
+}
+
+// ── Library ───────────────────────────────────────────────────────────────────
+async function loadLibrary() {
+  const {url,key,bucket}=getSupaConfig();
+  const statusEl=document.getElementById('lib-status');
+  const listEl=document.getElementById('lib-list');
+  statusEl.textContent='Loading…'; listEl.innerHTML='';
+  try {
+    const res=await fetch(`${url}/storage/v1/object/list/${bucket}`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json','apikey':key},
+      body:JSON.stringify({prefix:'',limit:200,offset:0,sortBy:{column:'created_at',order:'desc'}})
+    });
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='Error: '+JSON.stringify(data);return;}
+    allLibFiles=(data||[]).filter(f=>f.name&&(f.name.endsWith('.docx')||f.name.endsWith('.pdf')));
+    statusEl.textContent=allLibFiles.length+' file(s) in library.';
+    renderLibrary(allLibFiles,url,bucket);
+  } catch(e){statusEl.textContent='Network error: '+e.message;}
+}
+function filterLibrary() {
+  const q=document.getElementById('lib-search').value.toLowerCase();
+  const filtered=q?allLibFiles.filter(f=>f.name.toLowerCase().includes(q)):allLibFiles;
+  const {url,bucket}=getSupaConfig();
+  renderLibrary(filtered,url,bucket);
+}
+function renderLibrary(files,url,bucket) {
+  const listEl=document.getElementById('lib-list');
+  if(!files||!files.length){listEl.innerHTML='<div class="lib-empty">No files found.</div>';return;}
+  listEl.innerHTML='';
+  files.forEach(f=>{
+    const pubUrl=`${url}/storage/v1/object/public/${bucket}/${encodeURIComponent(f.name)}`;
+    const created=f.created_at?new Date(f.created_at).toLocaleString():'';
+    const size=f.metadata?.size?formatBytes(f.metadata.size):'';
+    const isPDF=f.name.endsWith('.pdf');
+    const card=document.createElement('div'); card.className='lib-card';
+    card.innerHTML=`
+      <div class="lib-icon">${isPDF?'📕':'📄'}</div>
+      <div class="lib-info">
+        <div class="lib-name" title="${escHtml(f.name)}">${escHtml(f.name)}</div>
+        <div class="lib-meta">${[created,size].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="lib-actions">
+        <a href="${pubUrl}" target="_blank"><button class="sec" style="font-size:12px;padding:4px 10px;">View</button></a>
+        <a href="${pubUrl}" download="${escHtml(f.name)}"><button style="font-size:12px;padding:4px 10px;">⬇ Download</button></a>
+        <button class="sec danger" style="font-size:12px;padding:4px 8px;" onclick="deleteLibFile('${escHtml(f.name)}')">✕</button>
+      </div>`;
+    listEl.appendChild(card);
+  });
+}
+async function deleteLibFile(name) {
+  if(!confirm('Delete "'+name+'"?'))return;
+  const {url,key,bucket}=getSupaConfig();
+  try {
+    const res=await fetch(`${url}/storage/v1/object/${bucket}`,{
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+key,'apikey':key,'Content-Type':'application/json'},
+      body:JSON.stringify({prefixes:[name]})
+    });
+    if(res.ok) loadLibrary(); else alert('Delete failed.');
+  } catch(e){alert('Error: '+e.message);}
+}
+function formatBytes(b){
+  if(!b)return'';
+  if(b<1024)return b+'B';
+  if(b<1048576)return Math.round(b/1024)+'KB';
+  return(b/1048576).toFixed(1)+'MB';
+}
+
+// ── MASS AUTOMATION ───────────────────────────────────────────────────────────
+
+async function massPDFLoaded(input) {
+  const file=input.files[0]; if(!file)return;
+  document.getElementById('mass-pdf-info').textContent='Rendering '+file.name+'…';
+  massPages=[];
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const vp=page.getViewport({scale:1.5});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    massPages.push({base64:canvas.toDataURL('image/png').split(',')[1],mime:'image/png',pageNum:p});
+    if(p%20===0||p===pdf.numPages)
+      document.getElementById('mass-pdf-info').textContent='Rendered '+p+'/'+pdf.numPages+'…';
+  }
+  document.getElementById('mass-pdf-info').textContent='✓ '+pdf.numPages+' pages ready — '+file.name;
+  updateMassPreview();
+}
+
+function updateMassPreview() {
+  const total=massPages.length; if(!total){document.getElementById('mass-preview').style.display='none';return;}
+  const ppa=Math.min(parseInt(document.getElementById('mass-pages-per-api').value)||5,BATCH_MAX);
+  const apiN=Math.min(parseInt(document.getElementById('mass-api-count').value)||3,NUM_KEYS);
+  const pagesPerRound=ppa*apiN;
+  const rounds=Math.ceil(total/pagesPerRound);
+  const totalDelay=Math.max(0,rounds-1)*65;
+  document.getElementById('mass-preview').style.display='block';
+  document.getElementById('mass-preview').innerHTML=
+    `<strong>Plan:</strong> ${total} pages ÷ ${pagesPerRound} pages/round (${apiN} APIs × ${ppa} pages) = <strong>${rounds} rounds</strong><br>
+     <strong>Order:</strong> Round 1 → Key1…Key${apiN} all complete → compile File 1 → wait 65s → Round 2 → …<br>
+     <strong>MCQs:</strong> numbered sequentially 1, 2, 3… across all rounds<br>
+     <strong>Estimated time:</strong> ~${totalDelay}s waiting + API response time<br>
+     <strong>Output:</strong> ${rounds} .docx files (auto-downloaded) + optional mega compile`;
+}
+
+function massLog(msg) {
+  const el=document.getElementById('mass-log'); if(!el)return;
+  const ts=new Date().toTimeString().slice(0,8);
+  el.textContent+='['+ts+'] '+msg+'\n';
+  el.scrollTop=el.scrollHeight;
+}
+
+function updateMassBar(done,total) {
+  const pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('mass-bar-fill').style.width=pct+'%';
+  document.getElementById('mass-prog-pct').textContent=pct+'%';
+}
+
+// ── Countdown display ─────────────────────────────────────────────────────────
+async function runCountdown(ms, label) {
+  const wrap=document.getElementById('mass-countdown-wrap');
+  const box=document.getElementById('mass-countdown');
+  wrap.style.display='block';
+  const end=Date.now()+ms;
+  while(Date.now()<end) {
+    const rem=Math.ceil((end-Date.now())/1000);
+    box.textContent=`⏱ ${label} — waiting ${rem}s for rate limit…`;
+    box.className='countdown-box';
+    await sleep(500);
+  }
+  box.textContent='✓ Rate limit window passed — continuing…';
+  box.className='countdown-box done';
+  await sleep(800);
+  wrap.style.display='none';
+}
+
+// ── Main mass automation loop ─────────────────────────────────────────────────
+async function startMassAutomation() {
+  if(!massPages.length){alert('Upload a PDF in the Mass Automation tab first.');return;}
+
+  const ppa   = Math.min(parseInt(document.getElementById('mass-pages-per-api').value)||5, BATCH_MAX);
+  const apiN  = Math.min(parseInt(document.getElementById('mass-api-count').value)||3, NUM_KEYS);
+  const mcqN  = parseInt(document.getElementById('mass-mcq-per-api').value)||20;
+
+  // Collect active keys in order (key 1 first, key N last)
+  const activeKeys=[];
+  for(let n=1;n<=apiN;n++){
+    const k=getKey(n);
+    if(k) activeKeys.push({n,key:k});
+    else massLog('WARNING: Key '+n+' is empty — skipping. Save your keys first!');
+  }
+  if(!activeKeys.length){alert('No API keys configured. Add and save at least 1 key in the MCQ Generator tab.');return;}
+
+  const pagesPerRound=ppa*activeKeys.length;
+  const totalPages=massPages.length;
+  const rounds=Math.ceil(totalPages/pagesPerRound);
+
+  massRunning=true; massAbort=false; massRoundFiles=[];
+  globalMCQCounter=1; // MCQs start at 1 globally
+
+  document.getElementById('mass-start-btn').disabled=true;
+  document.getElementById('mass-stop-btn').style.display='inline-block';
+  document.getElementById('mass-progress-section').style.display='block';
+  document.getElementById('mass-files-section').style.display='none';
+  document.getElementById('mass-log').textContent='';
+  document.getElementById('mass-batch-list').innerHTML='';
+  document.getElementById('mass-files-list').innerHTML='';
+  document.getElementById('mass-compile-status').textContent='';
+
+  massLog('=== Mass Automation v7 started ===');
+  massLog('PDF: '+totalPages+' pages | '+activeKeys.length+' APIs | '+ppa+' pages/API | '+rounds+' rounds');
+  massLog('MCQ ordering: sequential across all rounds (Question 1, 2, 3…)');
+  massLog('Rate limit: 65s wait between rounds');
+
+  // Build round progress UI up front
+  const batchListEl=document.getElementById('mass-batch-list');
+  for(let r=1;r<=rounds;r++){
+    const startPg=(r-1)*pagesPerRound+1;
+    const endPg=Math.min(r*pagesPerRound,totalPages);
+    const item=document.createElement('div');
+    item.className='mass-batch-item waiting'; item.id='mbi-r'+r;
+    item.innerHTML=`<span class="mbdot" id="mbdot-r${r}"></span>
+      <span><strong>Round ${r}:</strong> pages ${startPg}–${endPg}</span>
+      <span id="mbs-r${r}" style="margin-left:auto;color:#888;font-size:11px;">Waiting…</span>`;
+    batchListEl.appendChild(item);
+  }
+
+  let completedRounds=0;
+  document.getElementById('mass-prog-label').textContent='Round 0 / '+rounds;
+  updateMassBar(0,rounds);
+
+  for(let r=1;r<=rounds;r++){
+    if(massAbort){massLog('Aborted by user at round '+r);break;}
+
+    // Mark active
+    const rItem=document.getElementById('mbi-r'+r);
+    const rDot=document.getElementById('mbdot-r'+r);
+    const rStatus=document.getElementById('mbs-r'+r);
+    rItem.className='mass-batch-item active';
+    rDot.className='mbdot active';
+    rStatus.textContent='Firing '+activeKeys.length+' APIs…';
+    document.getElementById('mass-prog-label').textContent='Round '+r+' / '+rounds;
+    document.getElementById('mass-prog-detail').textContent='Round '+r+': firing '+activeKeys.length+' APIs in parallel…';
+    document.getElementById('mass-status-line').textContent='Round '+r+'/'+rounds+' running…';
+
+    const roundStart=(r-1)*pagesPerRound;
+
+    // ── Fire all keys for this round in parallel ──────────────────────────────
+    // Each key gets a FIXED slot index (ki=0,1,2…) so results can be sorted in key order
+    const keyJobs = activeKeys.map((kobj, ki) => {
+      const sliceStart = roundStart + ki * ppa;
+      const imgSlice   = massPages.slice(sliceStart, sliceStart + ppa);
+      if(!imgSlice.length) return Promise.resolve({ki, result:null});
+      const images     = imgSlice.map(p=>({base64:p.base64,mime:p.mime}));
+      // Pass current globalMCQCounter start per key — we'll renumber after anyway
+      const sysPrompt  = buildSystemPrompt(images.length, mcqN, globalMCQCounter + ki*mcqN);
+      const pageLabel  = 'Pages '+imgSlice[0].pageNum+'–'+imgSlice[imgSlice.length-1].pageNum;
+      massLog('Round '+r+' Key '+kobj.n+' → '+pageLabel);
+      return callGroqSilent(kobj.key, images, sysPrompt).then(result => ({ki, kobj, pageLabel, result}));
+    });
+
+    // Wait for ALL keys in this round to complete before moving on
+    const settled = await Promise.allSettled(keyJobs);
+
+    // ── Sort results strictly by key index (ki=0 first, ki=N last) ───────────
+    const roundResponses = [];
+    settled
+      .sort((a,b) => {
+        const ai = a.status==='fulfilled' ? (a.value?.ki??999) : 999;
+        const bi = b.status==='fulfilled' ? (b.value?.ki??999) : 999;
+        return ai - bi;
+      })
+      .forEach(s => {
+        if(s.status!=='fulfilled'||!s.value) return;
+        const {ki,kobj,pageLabel,result} = s.value;
+        if(!result||!result.ok){
+          massLog('Round '+r+' Key '+(kobj?.n||ki)+' ERROR: '+(result?.error||'unknown'));
+          roundResponses.push({
+            label:'Round '+r+' Key '+(kobj?.n||ki)+' — '+pageLabel+' [ERROR]',
+            text:'Error: '+(result?.error||'API error'),
+            ki
+          });
+          return;
+        }
+        massLog('Round '+r+' Key '+kobj.n+' ✓ ('+result.tokens+' tokens) '+pageLabel);
+        roundResponses.push({
+          label:'Round '+r+' Key '+kobj.n+' — '+pageLabel,
+          text: result.text,
+          ki
+        });
+      });
+
+    // ── Renumber MCQs across all responses in this round in strict order ──────
+    // roundResponses is already sorted by ki; renumber starting from globalMCQCounter
+    let localCounter = globalMCQCounter;
+    const numberedRoundResponses = roundResponses.map(r2 => {
+      const {text, endN} = renumberMCQs(r2.text, localCounter);
+      localCounter = endN;
+      return {...r2, text};
+    });
+    globalMCQCounter = localCounter; // advance global counter for next round
+
+    // ── Compile this round into docx ──────────────────────────────────────────
+    const startPg=(r-1)*pagesPerRound+1;
+    const endPg=Math.min(r*pagesPerRound,totalPages);
+    const fileLabel=`Round ${r} — Pages ${startPg}–${endPg}`;
+    massLog('Compiling '+fileLabel+'…');
+
+    // Build docx WITHOUT calling buildOrderedResponses (already numbered)
+    const blob = await buildDocxBlobRaw(numberedRoundResponses, 'MCQ Bank — '+fileLabel);
+    const fname='mcq-r'+String(r).padStart(3,'0')+'-p'+startPg+'to'+endPg+'-'+Date.now()+'.docx';
+    massRoundFiles.push({label:fileLabel, blob, filename:fname, responses:numberedRoundResponses});
+
+    completedRounds++;
+    rItem.className='mass-batch-item done';
+    rDot.className='mbdot done';
+    rStatus.textContent='✓ Done';
+    updateMassBar(completedRounds,rounds);
+    massLog('Round '+r+' compiled → '+fname);
+
+    triggerDownload(blob,fname);
+    massLog('Round '+r+' file auto-downloaded.');
+    renderMassFile(massRoundFiles.length-1);
+
+    // ── 65-second cooldown before next round (not after the last round) ───────
+    if(r<rounds && !massAbort){
+      massLog('Waiting 65s (rate limit window) before Round '+(r+1)+'…');
+      document.getElementById('mass-prog-detail').textContent='Rate limit cooldown — '+65+'s…';
+      await runCountdown(ROUND_DELAY, 'Before Round '+(r+1));
+      massLog('Cooldown done. Starting Round '+(r+1));
+    }
+  }
+
+  massRunning=false;
+  document.getElementById('mass-start-btn').disabled=false;
+  document.getElementById('mass-stop-btn').style.display='none';
+  document.getElementById('mass-files-section').style.display='block';
+  document.getElementById('mass-status-line').textContent=
+    massAbort?'Stopped.':'✓ Complete — '+completedRounds+' files generated. MCQs 1–'+(globalMCQCounter-1)+' total.';
+  document.getElementById('mass-prog-detail').textContent=
+    massAbort?'Aborted.':'All rounds complete.';
+  massLog('=== Mass Automation '+(massAbort?'aborted':'complete')+' — '+completedRounds+'/'+rounds+' rounds ===');
+  massLog('Total MCQs generated: '+(globalMCQCounter-1));
+}
+
+// ── buildDocxBlobRaw: skip the renumber step (already done) ───────────────────
+async function buildDocxBlobRaw(responses, title) {
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>`);
+  zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file('word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>`);
+  zip.file('word/document.xml',makeDocxXml(responses,title));
+  zip.file('word/styles.xml',makeStylesXml());
+  zip.file('word/settings.xml',makeSettingsXml());
+  return await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',compression:'DEFLATE',compressionOptions:{level:6}});
+}
+
+function stopMassAutomation() {
+  massAbort=true;
+  document.getElementById('mass-status-line').textContent='Stopping after current round…';
+  massLog('Stop requested — will finish current round then stop.');
+}
+
+function renderMassFile(i) {
+  const f=massRoundFiles[i];
+  const listEl=document.getElementById('mass-files-list');
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #eee;font-size:12px;flex-wrap:wrap;';
+  div.innerHTML=`<span style="flex:1;min-width:200px;">📄 <strong>${escHtml(f.label)}</strong></span>
+    <button onclick="triggerDownload(massRoundFiles[${i}].blob,massRoundFiles[${i}].filename)" class="sec" style="font-size:11px;padding:3px 9px;">⬇ Word</button>
+    <button onclick="downloadMassAsPDF(${i})" style="font-size:11px;padding:3px 9px;background:#8b1a1a;border-color:#8b1a1a;">⬇ PDF</button>
+    <button onclick="uploadMassFile(${i})" style="font-size:11px;padding:3px 9px;background:#2e5ca8;border-color:#2e5ca8;" id="mf-up-${i}">⬆ Upload</button>`;
+  listEl.appendChild(div);
+}
+
+async function downloadMassAsPDF(i) {
+  const f=massRoundFiles[i];
+  const blob = await buildPDFBlobRaw(f.responses, f.label);
+  const fname=f.filename.replace('.docx','.pdf');
+  triggerDownload(blob,fname);
+  massLog('PDF downloaded: '+fname);
+}
+
+async function buildPDFBlobRaw(responses, title) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 50;
+  const maxW = pageW - margin * 2;
+  let y = margin;
+  function addText(text, fontSize, bold, color) {
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setTextColor(...(color || [26,26,26]));
+    const lines = doc.splitTextToSize(text, maxW);
+    lines.forEach(line => {
+      if(y > doc.internal.pageSize.getHeight() - margin){ doc.addPage(); y = margin; }
+      doc.text(line, margin, y);
+      y += fontSize * 1.4;
+    });
+    y += 4;
+  }
+  addText(title || 'MCQ Bank', 18, true, [26,26,26]);
+  addText('Generated: '+new Date().toLocaleString(), 10, false, [120,120,120]);
+  y += 10;
+  responses.forEach((r, i) => {
+    addText(r.label, 13, true, [46,92,168]);
+    r.text.split('\n').forEach(line => {
+      if(!line.trim()){y+=6;return;}
+      addText(line, 11, false);
+    });
+    if(i<responses.length-1){
+      if(y>doc.internal.pageSize.getHeight()-margin-20){doc.addPage();y=margin;}
+      doc.setDrawColor(200,200,200);
+      doc.line(margin,y,pageW-margin,y);
+      y+=12;
+    }
+  });
+  return doc.output('blob');
+}
+
+async function uploadMassFile(i) {
+  const f=massRoundFiles[i];
+  const btn=document.getElementById('mf-up-'+i);
+  if(btn){btn.disabled=true;btn.textContent='Uploading…';}
+  const ok=await uploadToSupabase(f.blob,f.filename);
+  if(btn){btn.disabled=false;btn.textContent=ok?'✓ Uploaded':'✗ Failed';}
+  massLog(ok?'Uploaded '+f.filename:'Upload failed: '+f.filename);
+}
+
+async function uploadAllMassFiles() {
+  const btn=document.getElementById('mass-upload-all-btn');
+  btn.disabled=true; btn.textContent='Uploading…';
+  let ok=0;
+  for(let i=0;i<massRoundFiles.length;i++){
+    const res=await uploadToSupabase(massRoundFiles[i].blob,massRoundFiles[i].filename);
+    if(res)ok++;
+    massLog('Upload '+(i+1)+'/'+massRoundFiles.length+': '+(res?'✓':'✗')+' '+massRoundFiles[i].filename);
+  }
+  btn.disabled=false; btn.textContent='⬆ Upload All to Library';
+  document.getElementById('mass-compile-status').textContent='Uploaded '+ok+'/'+massRoundFiles.length+' files.';
+}
+
+async function compileMegaDoc(format) {
+  if(!massRoundFiles.length){alert('No mass run files to compile.');return;}
+  document.getElementById('mass-compile-status').textContent='Compiling mega document…';
+  // Flatten all round responses in round order (already renumbered)
+  const allResponses=massRoundFiles.flatMap(f=>f.responses);
+  const stamp=new Date().toISOString().slice(0,10)+'-'+Date.now();
+  if(format==='docx'){
+    const blob=await buildDocxBlobRaw(allResponses,'MCQ Bank — Complete (Questions 1–'+(globalMCQCounter-1)+')');
+    const fname='mcq-COMPLETE-'+stamp+'.docx';
+    triggerDownload(blob,fname);
+    document.getElementById('mass-compile-status').textContent='✓ Mega Word downloaded: '+fname;
+    massLog('Mega DOCX: '+fname);
+  } else {
+    const blob=await buildPDFBlobRaw(allResponses,'MCQ Bank — Complete (Questions 1–'+(globalMCQCounter-1)+')');
+    const fname='mcq-COMPLETE-'+stamp+'.pdf';
+    triggerDownload(blob,fname);
+    document.getElementById('mass-compile-status').textContent='✓ Mega PDF downloaded: '+fname;
+    massLog('Mega PDF: '+fname);
+  }
+}
+
+// ── Misc helpers ──────────────────────────────────────────────────────────────
+function setStatus(m){document.getElementById('status-bar').textContent=m;}
+function log(type,msg){
+  const el=document.getElementById('debug-log'); if(!el)return;
+  const ts=new Date().toTimeString().slice(0,8);
+  const d=document.createElement('div'); d.className='log-'+type;
+  d.textContent='['+ts+'] ['+type.toUpperCase()+'] '+msg;
+  el.appendChild(d); el.scrollTop=el.scrollHeight;
+}
+function clearLog(){document.getElementById('debug-log').innerHTML='';}
+
+</script>
+</body>
+</html>
