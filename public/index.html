@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Stripe Sandbox Demo</title>
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  body { background:#000; color:#fff; font-family: monospace; max-width:480px; margin:40px auto; padding:0 16px; }
+  h1 { font-size:16px; border-bottom:1px solid #fff; padding-bottom:8px; margin-top:24px; }
+  input, button { width:100%; padding:10px; margin:8px 0; background:#000; color:#fff; border:1px solid #fff; font-family:monospace; box-sizing:border-box; }
+  button { cursor:pointer; }
+  button:hover { background:#fff; color:#000; }
+  #card-element { padding:10px; border:1px solid #fff; margin:8px 0; }
+  #log { background:#111; border:1px solid #333; padding:8px; height:160px; overflow-y:auto; font-size:12px; white-space:pre-wrap; }
+  #result { margin:8px 0; font-weight:bold; }
+</style>
+</head>
+<body>
+<h1>Stripe Sandbox Demo</h1>
+<input id="amount" type="number" value="1000" placeholder="Amount in cents (1000 = $10.00)">
+<div id="card-element"></div>
+<button id="pay-btn">Pay</button>
+<div id="result"></div>
+<h1>Debug Log</h1>
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  const t = new Date().toLocaleTimeString();
+  logEl.textContent += `[${t}] ${msg}\n`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+let stripe, elements, card;
+
+async function init() {
+  try {
+    log('Fetching config...');
+    const res = await fetch('/config');
+    const { publishableKey } = await res.json();
+    if (!publishableKey) {
+      log('ERROR: No publishable key. Check .env file.');
+      return;
+    }
+    log('Publishable key loaded: ' + publishableKey.slice(0, 12) + '...');
+    stripe = Stripe(publishableKey);
+    elements = stripe.elements();
+    card = elements.create('card', {
+      style: { base: { color: '#fff', '::placeholder': { color: '#888' } } }
+    });
+    card.mount('#card-element');
+    log('Card element mounted. Ready.');
+  } catch (e) {
+    log('INIT ERROR: ' + e.message);
+  }
+}
+
+document.getElementById('pay-btn').addEventListener('click', async () => {
+  const amount = parseInt(document.getElementById('amount').value, 10);
+  document.getElementById('result').textContent = '';
+  try {
+    log(`Creating PaymentIntent for ${amount} cents...`);
+    const res = await fetch('/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount })
+    });
+    const data = await res.json();
+    if (data.error) {
+      log('Server error: ' + data.error);
+      return;
+    }
+    log('PaymentIntent created: ' + data.id);
+    log('Confirming card payment...');
+    const result = await stripe.confirmCardPayment(data.clientSecret, {
+      payment_method: { card: card }
+    });
+    if (result.error) {
+      log('Payment failed: ' + result.error.message);
+      document.getElementById('result').textContent = 'FAILED: ' + result.error.message;
+    } else {
+      log('Payment succeeded: ' + result.paymentIntent.status);
+      document.getElementById('result').textContent = 'SUCCESS: ' + result.paymentIntent.id;
+    }
+  } catch (e) {
+    log('REQUEST ERROR: ' + e.message);
+  }
+});
+
+init();
+</script>
+</body>
+</html>
